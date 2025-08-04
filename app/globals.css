@@ -1,8 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* General UI colors - light mode */
+  --background: #FFFFFF;            /* background color */
+  --background-secondary: #ffffff;  /* secondary background color */
+  --background-tertiary: #F8F8F8;   /* tertiary background color */
+  --object-primary: #121212;        /* text/icon color */
+  --object-secondary: #545454;      /* secondary text/icon color */
+  --object-tertiary: #888888;       /* tertiary text/icon color */
+  --primary-color: #FF3A61;         /* primary color */
+  --border: #C6C6C6;                /* border color */
+  --block: #E5E5E5;                 /* block/lines color */
+  --selection: #E0F7FF;             /* selection color */
+  --destructive: #ED6660;           /* destructive color */
+  --foreground: #000000;
+  --error: #ED6660;
+  --success: #10b981;
+  --warning: #f59e0b;
 }
 
 @theme inline {
@@ -14,8 +28,22 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* General UI colors - dark mode */
+    --background: #121212;              /* background color */
+    --background-secondary: #1D1D1D;    /* secondary background color */
+    --background-tertiary: #3A3A3A;     /* tertiary background color */
+    --object-primary: #FFFFFF;          /* text/icon color */
+    --object-secondary: #C6C6C6;        /* secondary text/icon color */
+    --object-tertiary: #888888;         /* tertiary text/icon color */
+    --primary-color: #FF3A61;           /* primary color */
+    --border: #545454;                  /* border color */
+    --block: #333333;                   /* block/lines color */
+    --selection: #2F3033;               /* selection color */
+    --destructive: #ED6660;             /* destructive color */
+    --foreground: #FFFFFF;
+    --error: #ED6660;
+    --success: #10b981;
+    --warning: #f59e0b;
   }
 }
 
@@ -23,4 +51,167 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Theme utility classes */
+.theme-bg {
+  background-color: var(--background);
+  color: var(--object-primary);
+}
+
+.theme-card {
+  background-color: var(--card-bg);
+  border-color: var(--border);
+}
+
+.theme-object-primary {
+  color: var(--object-primary);
+}
+
+.theme-object-secondary {
+  color: var(--object-secondary);
+}
+
+.theme-object-tertiary {
+  color: var(--object-tertiary);
+}
+
+.theme-input {
+  background-color: var(--background-secondary) !important;
+  border-color: var(--border);
+  color: var(--object-primary);
+  border-radius: 18px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+.theme-input::placeholder {
+  color: var(--object-tertiary) !important;
+  opacity: 1;
+}
+
+.theme-input .ant-input::placeholder {
+  color: var(--object-tertiary) !important;
+  opacity: 1;
+}
+
+.theme-input .ant-input-suffix .anticon {
+  color: var(--object-tertiary) !important;
+}
+
+.theme-input .ant-input-prefix {
+  margin-right: 12px !important;
+}
+
+.theme-input .ant-input-suffix {
+  margin-left: 12px !important;
+}
+
+.theme-input:hover,
+.theme-input:hover:focus,
+.theme-input:focus:hover {
+  border-color: none !important;
+  box-shadow: none !important;
+  background-color: none;
+}
+
+.theme-input:focus,
+.theme-input.ant-input-focused,
+.theme-input input:focus,
+.theme-input input.ant-input-focused,
+.theme-input .ant-input:focus,
+.theme-input .ant-input.ant-input-focused,
+.theme-input .ant-input-password input:focus,
+.theme-input .ant-input-password input.ant-input-focused {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(255, 58, 97, 0.1) !important;
+  background-color: var(--background-secondary) !important;
+}
+
+.theme-button-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+  border-radius: 15px !important;
+  font-weight: 600;
+  height: 50px;
+}
+
+.theme-button-primary:hover {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.theme-button-primary:focus {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+  box-shadow: 0 0 0 2px rgba(255, 58, 97, 0.1) !important;
+}
+
+.theme-button-primary:active {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.theme-link {
+  color: var(--primary-color) !important;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.theme-link:hover {
+  color: var(--primary-color) !important;
+  text-decoration: underline;
+}
+
+.theme-error {
+  color: var(--error);
+}
+
+.theme-success {
+  color: var(--success);
+}
+
+.theme-warning {
+  color: var(--warning);
+}
+
+.theme-logo {
+  filter: var(--logo-filter);
+  content: var(--logo-src);
+}
+
+.ant-input:focus, 
+.ant-input-focused, 
+.ant-input-password input:focus, 
+.ant-input-password input.ant-input-focused {
+  border-color: #FF3A61 !important;
+  box-shadow: 0 0 0 2px rgba(255, 58, 97, 0.1) !important;
+  outline: none !important;
+}
+
+.ant-dropdown-menu {
+  background-color: var(--background-tertiary) !important;
+}
+
+.ant-dropdown-menu .ant-dropdown-menu-item {
+  color: var(--object-primary) !important;
+}
+.ant-dropdown-menu .ant-dropdown-menu-item-active,
+.ant-dropdown-menu .ant-dropdown-menu-item-selected,
+.ant-dropdown-menu .ant-dropdown-menu-item:hover {
+  color: var(--primary-color) !important;
+}
+
+/* Reduce spacing between form items */
+.ant-form-item {
+  margin-bottom: 16px !important;
+}
+
+.ant-form-item:last-child {
+  margin-bottom: 0 !important;
 }
