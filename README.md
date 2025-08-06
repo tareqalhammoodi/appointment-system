@@ -1,4 +1,4 @@
-# Appointment System
+# Open Source Appointment Booking System
 
 A simple appointment management system with Firebase phone authentication.
 
