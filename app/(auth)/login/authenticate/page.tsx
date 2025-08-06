@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 export default function VerificationPage() {
   const searchParams = useSearchParams();
-  const phonenumber = searchParams.get("phonenumber");
+  const phoneNumber = searchParams.get("phonenumber");
 
   return (
     <>
@@ -14,7 +14,7 @@ export default function VerificationPage() {
           Verify your phone number
         </h1>
         <p className="theme-object-primary text-xl">
-          A verification code has been sent to {phonenumber || "5XX XXX XX XX"}
+          A verification code has been sent to {phoneNumber || "5XX XXX XX XX"}
         </p>
       </div>
       <div className="flex flex-col items-center flex-grow pt-20">

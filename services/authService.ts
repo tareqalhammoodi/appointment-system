@@ -1,73 +1,150 @@
-"use server";
-
-import bcrypt from "bcryptjs";
-import { RegisterFormSchema } from "@/lib/rules";
-import { redirect } from "next/navigation";
-
 /**
  * Authentication Service
- * Handles user authentication related operations
+ * Handles user authentication related operations with Firebase
  */
 
-/**
- * Register a new user
- * @param formData - FormData object containing username, email, password, confirmPassword
- * @returns errors object or redirects on success
- */
-export async function register(formData: FormData) {
-  // Validate form fields
-  const validatedFields = RegisterFormSchema.safeParse({
-    username: formData.get("username"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    confirmPassword: formData.get("confirmPassword"),
-    phonenumber: formData.get("phonenumber"),
-  });
+import { auth, db } from "@/lib/firebase";
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  PhoneAuthProvider,
+  signInWithCredential,
+  onAuthStateChanged,
+  signOut
+} from "firebase/auth";
+import {
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
 
-  // If any form fields are invalid
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      email: formData.get("email"),
-    };
+// Global recaptcha verifier
+let recaptchaVerifier: RecaptchaVerifier | null = null;
+
+export function initializeRecaptcha(containerId: string) {
+  if (!recaptchaVerifier) {
+    recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      size: 'invisible',
+      callback: () => {
+        console.log('reCAPTCHA solved');
+      },
+    });
   }
-
-  // Extract form fields
-  const { email, password } = validatedFields.data;
-
-  // TODO: Check if email is already registered
-
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // TODO: Save data to DB
-
-  // Redirect to MainPage
-  redirect("/");
+  return recaptchaVerifier;
 }
 
 /**
- * Login a user (placeholder)
- * @param values - login form values
+ * Send verification code to phone number
+ * @param phoneNumber - Phone number to send verification code to
+ * @param containerId - Container ID for reCAPTCHA
+ * @returns Promise with confirmation result
  */
-export async function login(formData: FormData) {
-  // replace this with backend call...
+export async function verifyNumber(phoneNumber: string, containerId: string) {
+  try {
+    const verifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier);
+    return { success: true, verificationId: confirmationResult.verificationId };
+  } catch (error: any) {
+    console.error('Error sending verification code:', error);
+    throw new Error(error.message || 'Failed to send verification code');
+  }
 }
 
-// Verification Code Request Method
-export async function verifyNumber(formData: FormData) {
-  // replace this with backend call...
-  return;
+/**
+ * Confirm verification code
+ * @param confirmationResult - Result from verifyNumber
+ * @param code - Verification code entered by user
+ * @returns Promise with user credential
+ */
+export async function confirmCode(verificationId: string, code: string) {
+  try {
+    const credential = PhoneAuthProvider.credential(verificationId, code);
+    const result = await signInWithCredential(auth, credential);
+    return { success: true, user: result.user };
+  } catch (error: any) {
+    console.error('Error confirming code:', error);
+    throw new Error(error.message || 'Invalid verification code');
+  }
 }
 
-// Phone Number Verification Code Confirmation Method
-export async function confirmCode(formData: FormData) {
-  // replace this with backend call...
-  return;
+/**
+ * Check if user exists in database
+ * @param phoneNumber - Phone number to check
+ * @returns Promise with user data or null
+ */
+export async function checkUserExists(phoneNumber: string) {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('phoneNumber', '==', phoneNumber));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0];
+      return { exists: true, userData: userDoc.data() };
+    }
+
+    return { exists: false, userData: null };
+  } catch (error: any) {
+    console.error('Error checking user existence:', error);
+    throw new Error('Failed to check user existence');
+  }
 }
 
-// Existed Member Check Method
-export async function checkMemberState(values: any) {
-  // replace this with backend call...
-  return;
+/**
+ * Save new user to database
+ * @param userData - User data to save
+ * @returns Promise with success status
+ */
+export async function saveUser(userData: {
+  uid: string;
+  phoneNumber: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  address?: string;
+  birthdate?: string;
+  gender?: string;
+}) {
+  try {
+    const userRef = doc(db, 'users', userData.uid);
+    await setDoc(userRef, {
+      ...userData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error saving user:', error);
+    throw new Error('Failed to save user data');
+  }
+}
+
+/**
+ * Get current authenticated user
+ * @returns Promise with user data or null
+ */
+export async function getCurrentUser() {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
+
+/**
+ * Sign out user
+ * @returns Promise
+ */
+export async function logout() {
+  try {
+    await signOut(auth);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error signing out:', error);
+    throw new Error('Failed to sign out');
+  }
 }

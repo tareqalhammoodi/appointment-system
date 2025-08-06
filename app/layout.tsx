@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils"
 import "./globals.css";
 import React from "react";
+import { AuthProvider } from "@/contexts/authContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={cn("min-h-screen font-geist-sans antialiased", geistSans.variable)}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import {
   Form,
   Input,
   Button,
+  message,
 } from 'antd';
-import { register } from "@/services/authService";import { RegisterFormSchema } from '@/lib/rules';
+import { useRouter } from 'next/navigation';
+import { saveUser } from "@/services/authService";
 import clsx from "clsx";
 import PersonIcon from '@/components/icons/person';
 import LocationIcon from '@/components/icons/location';
@@ -15,30 +19,72 @@ const RegisterForm: React.FC = () => {
   const [isLoading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [userData, setUserData] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Get user data from session storage
+    const storedUserData = sessionStorage.getItem('newUserData');
+    if (storedUserData) {
+      setUserData(JSON.parse(storedUserData));
+    } else {
+      // If no user data, redirect to login
+      router.push('/login');
+    }
+  }, [router]);
 
   const onFinish = async (values: any) => {
     try {
       setLoading(true);
-      // validation
-      RegisterFormSchema.parse({
-        email: values.email,
-        password: values.password,
-        confirmPassword: values.confirmpassword,
-      });
-      // backend call
-      await register(values);
-    } catch (err: any) {
-      if (err.errors) {
-        form.setFields(
-          err.errors.map((zodErr: any) => ({
-            name: zodErr.path[0] === 'confirmPassword' ? 'confirmpassword' : zodErr.path[0],
-            errors: [zodErr.message],
-          }))
-        );
-        setLoading(false);
+
+      if (!userData) {
+        message.error('Registration session expired. Please try again.');
+        router.push('/login');
+        return;
       }
+
+      // Split full name into first and last name
+      const nameParts = values.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Prepare user data for saving
+      const userDataToSave = {
+        uid: userData.uid,
+        phoneNumber: userData.phoneNumber,
+        firstName,
+        lastName,
+        email: values.email || '',
+        address: values.address || '',
+        birthdate: values.birthdate || '',
+        gender: values.gender || 'male',
+      };
+
+      // Save user to database
+      await saveUser(userDataToSave);
+      
+      // Clear session storage and context
+      sessionStorage.removeItem('newUserData');
+      
+      message.success('Registration successful! Welcome to our platform.');
+      router.push('/home');
+      
+    } catch (err: any) {
+      console.error('Error saving user data:', err);
+      message.error(err.message || 'Failed to complete registration');
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (!userData) {
+    return (
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-18 w-18 border-b-1 theme-object-primary mx-auto"></div>
+        <p className="mt-4 text-lg theme-object-primary">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md w-full">
